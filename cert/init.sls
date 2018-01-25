@@ -25,7 +25,7 @@ cert_packages:
   {% set key_mode = data.get('key_mode', map.key_mode) %}
   {% set cert_dir = data.get('cert_dir', map.cert_dir) %}
   {% set key_dir = data.get('key_dir', map.key_dir) %}
-
+  {% set keys_from_source_dir = data.get('keys_from_source_dir', map.keys_from_source_dir) %}
 
 {{ cert_dir }}/{{ name }}:
   file.managed:
@@ -39,11 +39,15 @@ cert_packages:
     - group: {{ cert_group }}
     - mode: {{ cert_mode }}
 
-  {% if key %}
+  {% if key or keys_from_source_dir %}
 {{ key_dir }}/{{ name }}.key:
   file.managed:
+    {%- if keys_from_source_dir %}
+    - source: {{ map.cert_source_dir }}{{ name }}.key
+    {%- else %}
     - contents: |
 {{ key|indent(8, True) }}
+    {%- endif %}
     - user: {{ key_user }}
     - group: {{ key_group }}
     - mode: {{ key_mode }}
